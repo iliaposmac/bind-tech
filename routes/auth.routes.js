@@ -19,7 +19,6 @@ router.post('/registration', async(req, res)=>{
     const userFind = await User.findOne({username: username})
     if(!userFind){
         const hashedPassword = await bcrypt.hash(password,10)
-        console.log(hashedPassword);
         const newUser = new User ({
             username: username,
             email: email,
@@ -52,7 +51,6 @@ router.post('/login', async(req, res)=>{
     res.cookie('bind_tech', token, {
         maxAge: 2*60*60*1000
     })
-    console.log(req.get('cookie'));
     return res.status(200).json({
         token: token,
         cookie: req.get('cookie')  

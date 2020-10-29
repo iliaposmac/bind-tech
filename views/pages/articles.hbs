@@ -1,0 +1,11 @@
+{{#each articles}}
+    <div>
+        <input type="hidden" value="{{id}}" name="articleId">
+        <input type="hidden" value="{{data.userId}}" name="userId">
+        <p>{{data.username}}</p>
+        <h1><a href="/blog/articles/{{id}}">{{data.title}}</a></h1>
+        <h2>{{data.shortDescription}}</h2>
+        <h2>{{data.textContent}}</h2>
+        <p>{{data.time}}</p>
+    </div>
+{{/each}}

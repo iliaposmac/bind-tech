@@ -54,7 +54,7 @@ import mainRoutes from './routes/main.routes.js'
 // Use routes
 app.use('/admin', adminRoutes)
 app.use('/auth', authRoutes)
-app.use('/', blogRoutes)
+app.use('/blog', blogRoutes)
 app.use('/', mainRoutes)
 
 

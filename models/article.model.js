@@ -18,6 +18,10 @@ const articleSchema = Schema ({
     textContent: {
         type: String,
         required: true
+    },
+    time: {
+        type: Date,
+        required: true
     }
 })
 
