@@ -2,8 +2,7 @@ import express from 'express'
 const router = express.Router()
 
 router.get('/', (req, res)=>{
-    // res.render('pages/admin/admin')
-    res.send('Hello from main routes')
+    res.render('pages/index', {title: "Home page"})
 })
 
 export default router

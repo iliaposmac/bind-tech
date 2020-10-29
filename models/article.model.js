@@ -3,6 +3,10 @@ const Schema = mongoose.Schema
 
 const articleSchema = Schema ({
     id: mongoose.Types.ObjectId,
+    userId: {
+        type: String,
+        required: true
+    },
     title: {
         type: String,
         required: true,

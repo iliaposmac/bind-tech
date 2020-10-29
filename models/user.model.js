@@ -22,8 +22,4 @@ const userSchema = Schema ({
     }
 })
 
-userSchema.pre('save', (next)=>{
-    next()
-})
-
 export default mongoose.model("User", userSchema)
