@@ -2,8 +2,11 @@
     <div>
         <input type="hidden" value="{{id}}" name="articleId">
         <input type="hidden" value="{{data.userId}}" name="userId">
-        <p>{{data.username}}</p>
-        <h1><a href="/blog/articles/{{id}}">{{data.title}}</a></h1>
+        
+        <span>
+            <h1 style="display: inline-flex"><a href="/blog/articles/{{id}}">{{data.title}}   </a></h1>
+            <span>  Created by: {{data.username}} </span>
+        </span>
         <h2>{{data.shortDescription}}</h2>
         <h2>{{data.textContent}}</h2>
         <p>{{data.time}}</p>

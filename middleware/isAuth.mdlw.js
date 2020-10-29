@@ -10,7 +10,6 @@ const auth = async (req, res, next) => {
                 .trim()
                 .split('bind_tech=')
                 .filter(x => x !=='')[0]
-        console.log(token);
         const data = await jwt.decode(token, process.env.JWT_KEY)
         const user = await User.findOne({username: data.username})
         if (!user) {

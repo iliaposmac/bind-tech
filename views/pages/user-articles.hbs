@@ -6,9 +6,11 @@
         </span>
         <h2>{{shortDescription}}</h2>
         <h2>{{textContent}}</h2>
-        <form action="/admin/remove/{{id}}" method="POST">
+        <p>{{time}}</p>
+        <form action="/blog/my_articles/remove/{{id}}" method="POST">
             <input type="hidden" value="{{id}}" name="articleId">
-            <button type="submit">Remove article</button>
+            <input type="hidden" value="{{userId}}" name="userId">
+            <button type="submit">Delete article</button>
         </form>
     </div>
 {{/each}}

@@ -51,9 +51,18 @@ router.post('/login', async(req, res)=>{
     res.cookie('bind_tech', token, {
         maxAge: 2*60*60*1000
     })
-    return res.status(200).json({
-        token: token,
-        cookie: req.get('cookie')  
-    })
+    return res.redirect(302, '/blog/add')
 })
+
+// Logout
+router.get('/logout', (req, res)=>{
+    try {
+        res.cookie('bind_tech')
+        res.clearCookie('bind_tech')
+        res.redirect('/login')
+    } catch (error) {
+        res.status(400).json(error)
+    }
+})
+
 export default router

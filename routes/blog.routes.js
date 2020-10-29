@@ -1,7 +1,7 @@
 import express from 'express'
 import auth from '../middleware/isAuth.mdlw.js'
-import firebase from 'firebase'
 import firebaseFirestore from '../configuration/firebase.js'
+import Comments from '../models/comment.model.js'
 
 // Initialize firebase
 const router = express.Router()
@@ -48,20 +48,67 @@ router.post('/add', auth , async(req, res)=>{
 // Get single article
 router.get('/articles/:articleId', async(req, res)=>{
     const articleId = req.params.articleId
-    // console.log(firebaseFirestore.collection('articles'))
+    const commentsFromDb = await Comments.find({articleId: articleId})
+    const comments = commentsFromDb.map((comment)=>{
+        return {comment: comment.comment, name: comment.username}
+    })
+    console.log(comments)
     firebaseFirestore.collection('articles').get().then(snapshot=>{
-        const articleFromDB = snapshot.docs.map(article => {
+        snapshot.docs.map(article => {
             if(article.id == articleId){
                 console.log({id: article.id, data: article.data()})
-                // return res.status(200).json({id: article.id, data: article.data()})
                 return res.render('pages/blog-single', {
                     id: article.id,
                     title:article.data().title,
-                    article: article.data()
-                } )
+                    article: article.data(),
+                    comments: comments
+                })
             }
         })
     })
 })
 
+// Add comments to each article separatly
+router.post('/:id/comments', async(req, res)=>{
+    const newComment = new Comments({
+        username: req.body.name,
+        comment:req.body.comment,
+        articleId: req.body.articleId
+    })
+    await newComment.save()
+    res.redirect(302, '/blog/all')
+})
+
+
+// Get user's articles
+router.get('/my_articles', auth ,async(req, res)=>{
+    const user = req.user
+    const articles = []
+    const fireStore = await firebaseFirestore.collection('articles').get()
+    fireStore.docs.map(snapshot => {
+        if(snapshot.data().userId == user._id){
+            articles.push({...snapshot.data(), id: snapshot.id})
+        }
+    })
+    // console.log(articles)
+    res.render('pages/user-articles', {
+        articles: articles
+    })
+})
+
+
+// Delete user's article
+router.post('/my_articles/remove/:id', async(req, res)=>{
+    console.log(req.body)
+    try {
+        const article = await firebaseFirestore.collection('articles').doc(req.body.articleId).delete()
+        if(article){
+            res.status(200).json(req.body)
+        }else{
+            res.status(200).redirect('/blog/my_articles')
+        }
+    } catch (error) {
+        res.status(400).json(error)
+    }
+})
 export default router
