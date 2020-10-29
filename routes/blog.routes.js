@@ -2,17 +2,24 @@ import express from 'express'
 import auth from '../middleware/isAuth.mdlw.js'
 import firebaseFirestore from '../configuration/firebase.js'
 import Comments from '../models/comment.model.js'
+import User from '../models/user.model.js'
+import jwt from 'jsonwebtoken'
 
 // Initialize firebase
 const router = express.Router()
 
+// Get all articles
 router.get('/all', async(req, res)=>{
-    firebaseFirestore.collection('articles').orderBy('time', 'asc').onSnapshot((articles)=>{
-        const newArticles = articles.docs.map(doc=>({id: doc.id, data: doc.data()}))
-        return res.render('pages/articles', {
-            articles: newArticles
+    try {
+        firebaseFirestore.collection('articles').orderBy('time', 'asc').onSnapshot((articles)=>{
+            const newArticles = articles.docs.map(doc=>({id: doc.id, data: doc.data()}))
+            return res.render('pages/articles', {
+                articles: newArticles
+            })
         })
-    })
+    } catch (error) {
+        res.status(400).json(error.message)
+    }
 })
 
 router.get('/add', auth ,(req, res)=>{
@@ -23,7 +30,6 @@ router.get('/add', auth ,(req, res)=>{
 router.post('/add', auth , async(req, res)=>{
     const {title, shortDescription,textContent} = req.body
     const user = req.user
-    console.log(req.body)
     const article = {
         title: title,
         username: user.username,
@@ -48,34 +54,84 @@ router.post('/add', auth , async(req, res)=>{
 // Get single article
 router.get('/articles/:articleId', async(req, res)=>{
     const articleId = req.params.articleId
-    const commentsFromDb = await Comments.find({articleId: articleId})
-    const comments = commentsFromDb.map((comment)=>{
-        return {comment: comment.comment, name: comment.username}
-    })
+    let commentsFromDb = []
+    try {
+        commentsFromDb = await Comments.find({articleId: articleId})
+    } catch (error) {
+        console.log("Find comments from DB error" , error.message)        
+    }
+    
+    let comments = []
+    let token = null;
+    const cookie = req.get('cookie')
+    
+    if(cookie){
+        token = cookie.split(';')
+        .find(c => c.includes('bind_tech='))
+        .trim().split('bind_tech=')
+        .filter(x => x !=='')[0]
+    }
+
+    try {
+        const data = await jwt.decode(token, process.env.JWT_SECRET)
+        if(data){
+            commentsFromDb.map((comment)=>{
+                if(comment.userId == data.id){
+                    comments.push({comment: comment.comment, name: comment.username, commentId:comment._id, myComment: true})
+                }else{
+                    comments.push({comment: comment.comment, name: comment.username, commentId:comment._id, myComment: false})
+                }
+            })
+        }
+    } catch (error) {
+        console.log("Error with data and user JWT",error)
+    }
     console.log(comments)
-    firebaseFirestore.collection('articles').get().then(snapshot=>{
-        snapshot.docs.map(article => {
-            if(article.id == articleId){
-                console.log({id: article.id, data: article.data()})
-                return res.render('pages/blog-single', {
-                    id: article.id,
-                    title:article.data().title,
-                    article: article.data(),
-                    comments: comments
-                })
-            }
+    try {
+        firebaseFirestore.collection('articles').get().then(snapshot=>{
+            snapshot.docs.map(article => {
+                if(article.id == articleId){
+                    console.log({id: article.id, data: article.data(), })
+                    return res.render('pages/blog-single', {
+                        id: article.id,
+                        title:article.data().title,
+                        article: article.data(),
+                        comments: comments
+                    })
+                }
+            })
         })
-    })
+    } catch (error) {
+        console.log("Error with firebase", error)
+    }
 })
 
 // Add comments to each article separatly
-router.post('/:id/comments', async(req, res)=>{
-    const newComment = new Comments({
-        username: req.body.name,
-        comment:req.body.comment,
-        articleId: req.body.articleId
-    })
-    await newComment.save()
+router.post('/:id/comments',async(req, res)=>{
+
+    const cookie = req.get('cookie')
+    const token = cookie.split(';')
+        .find(c => c.includes('bind_tech='))
+        .trim().split('bind_tech=')
+        .filter(x => x !=='')[0]
+    const data = await jwt.decode(token, process.env.JWT_SECRET)
+
+    if(data){
+        const newComment = new Comments({
+            username: req.body.name,
+            comment:req.body.comment,
+            articleId: req.body.articleId,
+            userId: data.id
+        })
+        await newComment.save()
+    }else{
+        const newComment = new Comments({
+            username: req.body.name,
+            comment:req.body.comment,
+            articleId: req.body.articleId
+        })
+        await newComment.save()
+    }
     res.redirect(302, '/blog/all')
 })
 
@@ -111,4 +167,37 @@ router.post('/my_articles/remove/:id', async(req, res)=>{
         res.status(400).json(error)
     }
 })
+
+// Update article
+router.get('/my_articles/:id/update', auth ,async(req, res)=>{
+    const article = await firebaseFirestore.collection('articles').doc(req.params.id).get()
+    console.log(article.data().shortDescription)
+    res.render('pages/article-update', {
+        article: article.data(),
+        id: article.id
+    })
+})
+
+// Update article
+router.post('/my_articles/:id/update', auth ,async(req, res)=>{
+    const {id, title ,shortDescription, textContent} = req.body
+    const article = firebaseFirestore.collection('articles').doc(id).update({
+        title: title,
+        shortDescription: shortDescription,
+        textContent: textContent,
+    })
+    res.redirect(302, '/blog/my_articles')
+})
+
+router.get('/:id/edit_comments', auth , async(req, res)=>{
+    try {
+        const comment = Comments.findOne({_id: req.params.id})
+        await comment.deleteOne()
+        res.redirect(302, '/blog/my_articles')
+    } catch (error) {
+        res.status(400).json(error.message)
+    }
+
+})
+
 export default router

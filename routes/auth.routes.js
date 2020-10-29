@@ -59,7 +59,7 @@ router.get('/logout', (req, res)=>{
     try {
         res.cookie('bind_tech')
         res.clearCookie('bind_tech')
-        res.redirect('/login')
+        res.redirect('/auth/login')
     } catch (error) {
         res.status(400).json(error)
     }

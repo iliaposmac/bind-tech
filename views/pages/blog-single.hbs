@@ -20,6 +20,10 @@
         <ul>
             {{#each comments}}
                 <p>Name: {{name}} Comment: {{comment}}</p>
+                {{#if myComment}}
+                    <span><a href="/blog/{{commentId}}/edit_comments">Edit comment</a></span>
+                    <span><a href="/blog/{{commentId}}/remove_comment">Remove comment</a></span>
+                {{/if}}
             {{/each}}
         </ul>
     </div>

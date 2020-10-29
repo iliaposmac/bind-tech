@@ -1,10 +1,11 @@
 import express from 'express'
 import firebaseFirestore from '../configuration/firebase.js' 
 import admin from '../middleware/user_role.mdlw.js'
+import auth from '../middleware/isAuth.mdlw.js'
 const router = express.Router()
 
 // Get all articles
-router.get('/articles',async(req, res)=>{
+router.get('/articles',auth, admin ,async(req, res)=>{
     const articles = []
     const fireStore = await firebaseFirestore.collection('articles').get()
     fireStore.docs.map(snapshot => {
@@ -17,7 +18,7 @@ router.get('/articles',async(req, res)=>{
 })
 
 // Remove article
-router.post('/remove/:id', async(req,res)=>{
+router.post('/remove/:id', auth, admin ,async(req,res)=>{
     try {
         const article = await firebaseFirestore.collection('articles').doc(req.body.articleId).delete()
         if(!article){

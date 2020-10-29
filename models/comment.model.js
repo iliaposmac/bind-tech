@@ -14,6 +14,10 @@ const commentSchema = Schema ({
     articleId: {
         type: String,
         required: true
+    }, 
+    userId: {
+        type: String,
+        default: 'guest_comment'
     }
 })
 

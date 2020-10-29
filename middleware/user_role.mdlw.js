@@ -17,10 +17,9 @@ const admin = async (req, res, next) => {
             throw new Error('Incorect token')
         }
         if(user.role == "admin"){
-            req.user = user
-            req.token = token
-            next()
+            return next()
         }
+        return res.redirect('/blog/all')
     } catch (err) {
         console.log("Not accepted auth")
         res.redirect('/')
