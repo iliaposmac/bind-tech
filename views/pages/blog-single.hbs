@@ -17,11 +17,11 @@
 
 {{#if comments}}
     <div>
-        <ul>
+        <ul id="commentsUl">
             {{#each comments}}
-                <p>Name: {{name}} Comment: {{comment}}</p>
+                <p id="comment_{{commentId}}">Name: {{name}} Comment: <span>{{comment}}</span></p>
                 {{#if myComment}}
-                    <span><a href="/blog/{{commentId}}/edit_comments">Edit comment</a></span>
+                    <span id="inputComment"><button id="editComment"><a href="/blog/{{commentId}}/edit_comments" data-id={{commentId}}>Edit comment</a></button></span>
                     <span><a href="/blog/{{commentId}}/remove_comment">Remove comment</a></span>
                 {{/if}}
             {{/each}}
@@ -30,3 +30,5 @@
     {{else}}
     <p>There are no comments</p>
 {{/if}}
+
+<script src='/js/main.js'></script>

@@ -14,7 +14,7 @@ router.get('/all', async(req, res)=>{
         firebaseFirestore.collection('articles').orderBy('time', 'asc').onSnapshot((articles)=>{
             const newArticles = articles.docs.map(doc=>({id: doc.id, data: doc.data()}))
             return res.render('pages/articles', {
-                articles: newArticles
+                articles: newArticles.filter(art=>art.data.posted === true)
             })
         })
     } catch (error) {
@@ -28,7 +28,7 @@ router.get('/add', auth ,(req, res)=>{
 
 // Post articles
 router.post('/add', auth , async(req, res)=>{
-    const {title, shortDescription,textContent} = req.body
+    const {title, shortDescription,textContent, postArticle} = req.body
     const user = req.user
     const article = {
         title: title,
@@ -36,8 +36,10 @@ router.post('/add', auth , async(req, res)=>{
         shortDescription: shortDescription,
         textContent: textContent,
         userId: user._id.toString(),
-        time: new Date().toString()
+        time: new Date().toString(),
+        posted: postArticle == true ? "true" : false
     }
+    console.log(article)
     try {
         const newArticle = await firebaseFirestore.collection('articles').add(article)
         if(newArticle){
@@ -180,16 +182,18 @@ router.get('/my_articles/:id/update', auth ,async(req, res)=>{
 
 // Update article
 router.post('/my_articles/:id/update', auth ,async(req, res)=>{
-    const {id, title ,shortDescription, textContent} = req.body
-    const article = firebaseFirestore.collection('articles').doc(id).update({
+    const {id, title ,shortDescription, textContent, postArticle} = req.body
+    const article = await firebaseFirestore.collection('articles').doc(id).update({
         title: title,
         shortDescription: shortDescription,
         textContent: textContent,
+        posted: postArticle === "true" ? true : false
     })
+    // console.log(postArticle === "true" ? true : false)
     res.redirect(302, '/blog/my_articles')
 })
 
-router.get('/:id/edit_comments', auth , async(req, res)=>{
+router.get('/:id/remove_comments', auth , async(req, res)=>{
     try {
         const comment = Comments.findOne({_id: req.params.id})
         await comment.deleteOne()
@@ -197,7 +201,16 @@ router.get('/:id/edit_comments', auth , async(req, res)=>{
     } catch (error) {
         res.status(400).json(error.message)
     }
+})
 
+router.post('/:id/edit_comments', auth , async(req, res)=>{
+    try {
+        console.log(req.body.comment_update)
+        const comment = await Comments.updateOne({_id: req.body.commentId}, {comment: req.body.comment_update})
+        res.redirect(302, '/blog/all')
+    } catch (error) {
+        res.status(400).json(error.message)
+    }
 })
 
 export default router

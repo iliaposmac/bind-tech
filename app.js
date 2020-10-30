@@ -30,7 +30,7 @@ app.use(cors({
 }))
 app.use(compression())
 app.use(helmet())
-app.use(express.static(__dirname+'/public'))
+app.use('*/js', express.static(path.join('public', 'javascripts')))
 app.use(express.urlencoded({extended: false}))
 app.use(bodyParser.json())
 app.use(cookieParser());

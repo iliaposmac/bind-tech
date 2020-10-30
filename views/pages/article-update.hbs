@@ -4,6 +4,20 @@
         <input type="text"  name="title" placeholder="{{article.title}}" value="{{article.title}}">
         <input type="text" name="shortDescription" value="{{article.shortDescription}}" placeholder="{{article.shortDescription}}">
         <input type="text" name="textContent" value="{{article.textContent}}" placeholder="{{article.textContent}}">
+        <label for="postArticle">Post article</label>
+
+    {{#if article.posted}}
+        <input type="radio" value="true" name="postArticle" checked> 
+        <label for="postArticle">Hide article</label>
+        <input type="radio" value="false" name="postArticle">
         <button type="submit">Update</button>
+    {{else}}
+    <input type="radio" value="true" name="postArticle" > 
+        <label for="postArticle">Hide article</label>
+        <input type="radio" value="false" name="postArticle" checked>
+        <button type="submit">Update</button>
+    {{/if}}
+        
+        
     </form>
 </div>

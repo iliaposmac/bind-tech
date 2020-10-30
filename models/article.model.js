@@ -22,6 +22,10 @@ const articleSchema = Schema ({
     time: {
         type: Date,
         required: true
+    },
+    posted: {
+        type: Boolean,
+        required: true,
     }
 })
 
